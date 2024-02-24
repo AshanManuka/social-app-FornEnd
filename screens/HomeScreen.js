@@ -18,9 +18,6 @@ const HomeScreen = ({navigation}) => {
     const checkCredential = () => {
         alert("Move");
     }
-    const registerAccount = () => {
-        alert("Register");
-    }
 
 
 
@@ -57,7 +54,7 @@ const HomeScreen = ({navigation}) => {
 
             <TouchableOpacity
                 style={styles.registerBtn}
-                onPress={registerAccount}
+                onPress={() => navigation.navigate('Register')}
             >
                 <Text style={styles.btnTextTwo}>Register</Text>
             </TouchableOpacity>
@@ -77,7 +74,7 @@ export default HomeScreen;
 
 const styles= StyleSheet.create({
     body : {
-        backgroundColor: '#2d3436',
+        backgroundColor: '#1e272e',
         alignItems: 'center',
         flex:1
       },
@@ -96,7 +93,7 @@ const styles= StyleSheet.create({
       subView:{
         width: '90%',
         height:'42%',
-        backgroundColor: '#596275', 
+        backgroundColor: '#485460', 
         marginLeft: '5%',
         position: 'absolute',
         marginTop: '105%',
