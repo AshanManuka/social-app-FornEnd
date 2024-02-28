@@ -20,7 +20,6 @@ const HomeScreen = ({navigation}) => {
       const userCredential = new FormData();
         userCredential.append('userName', username);
         userCredential.append('password', password);
-        console.log(username,password)
 
       try {
           const response = fetch(backEndUrl, {
@@ -34,7 +33,10 @@ const HomeScreen = ({navigation}) => {
           .then((response) => response.json())
           .then((responseJson) => {
             if(responseJson.body){
-              navigation.navigate('Feed')
+              navigation.navigate('Feed',{
+                'userId' : responseJson.body.id,
+                'userEmail' : responseJson.body.email
+              })
             }else{
               alert("Invalid Username or Password..!")
             }
