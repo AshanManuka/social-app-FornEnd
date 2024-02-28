@@ -14,9 +14,38 @@ const HomeScreen = ({navigation}) => {
     }
 
 
-
     const checkCredential = () => {
-        alert("Move");
+      const backEndUrl = 'http://107.21.143.177:8080/user/login';
+
+      const userCredential = new FormData();
+        userCredential.append('userName', username);
+        userCredential.append('password', password);
+        console.log(username,password)
+
+      try {
+          const response = fetch(backEndUrl, {
+            method: 'POST',
+            body: userCredential,
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          })
+      
+          .then((response) => response.json())
+          .then((responseJson) => {
+            if(responseJson.body){
+              navigation.navigate('Feed')
+            }else{
+              alert("Invalid Username or Password..!")
+            }
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+        } catch (error) {
+          console.error('Error sending request:', error);
+        };
+
     }
 
 
@@ -58,17 +87,9 @@ const HomeScreen = ({navigation}) => {
             >
                 <Text style={styles.btnTextTwo}>Register</Text>
             </TouchableOpacity>
-            
-
-            
-            
-
-
-
-
+ 
         </View>
-    );
-
+  );
 }
 export default HomeScreen;
 

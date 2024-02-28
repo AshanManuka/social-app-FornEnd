@@ -1,15 +1,26 @@
-import React from 'react';
-import { StyleSheet, Text, View, Image, TextInput, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import * as ImagePicker from 'expo-image-picker';
+import { StyleSheet, Text, View, Image, Button, TextInput, TouchableOpacity } from 'react-native';
 
 
 const RegisterScreen = () => {
 
     const [fullName, setFullName] = React.useState('');
-    const [email, setEmail] = React.useState('');
-    const [password, setPassword] = React.useState('');
+    const [userEmail, setEmail] = React.useState('');
+    const [createdPassword, setPassword] = React.useState('');
     const [otp, setOtp] = React.useState('');
+    const [selectedImageUri, setSelectedImageUri] = useState(null);
     const [isRegistrationViewVisible, setIsRegistrationViewVisible] = React.useState(true);
     const [isVerificationViewVisible, setIsVerificationViewVisible] = React.useState(false);
+
+    useEffect(() => {
+      (async () => {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+          alert('Permission to access media library is required!');
+        }
+      })();
+    }, []);
 
     const changeFullName = (inputText) => {
         setFullName(inputText);
@@ -26,15 +37,68 @@ const RegisterScreen = () => {
 
 
     const RegisterAccount = () => {
-        alert("register")
-        setIsRegistrationViewVisible(false);
-        setIsVerificationViewVisible(true);
-    }
+
+      const backEndUrl = 'http://107.21.143.177:8080/public/sign-up';
+
+      const registerData = new FormData();
+      registerData.append('name', fullName);
+      registerData.append('email', userEmail);
+      registerData.append('userName', userEmail);
+      registerData.append('password', createdPassword);
+
+      if (selectedImageUri) {
+        const imageUriParts = selectedImageUri.split('.');
+        const imageType = imageUriParts[imageUriParts.length - 1];
+        const imageName = `profileImage.${imageType}`;
+        registerData.append('profileImage', {
+          uri: selectedImageUri,
+          name: imageName,
+          type: `image/${imageType}`,
+        });
+      }
+        
+      console.log('Sending request to:', backEndUrl);
+  
+
+      try {
+        fetch(backEndUrl, {
+          method: 'POST',
+          body: registerData,
+          headers: {
+            'Content-Type': 'multipart/form-data', // Important for sending FormData
+          },
+        })
+          .then((response) => response.json())
+          .then((responseJson) => {
+            console.log(responseJson);
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+      } catch (error) {
+        console.error('Error getting location:', error);
+      }
+    
+      setIsRegistrationViewVisible(false);
+      setIsVerificationViewVisible(true);
+    };
+    
     const verifyAccount = () => {
         alert("verify")
         setIsRegistrationViewVisible(true);
         setIsVerificationViewVisible(false);
     }
+
+    const pickImage = async () => {
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: false,
+        aspect: [4, 3],
+        quality: 1,
+      });
+    
+      setSelectedImageUri(result.assets[0].uri);
+    };
 
     return(
         <View style={styles.body}>
@@ -54,15 +118,19 @@ const RegisterScreen = () => {
             <TextInput
                 style={styles.inputOne}
                 onChangeText={changeEmail}
-                value={email}
+                value={userEmail}
             />
 
             <Text style={styles.subText}>Password</Text>
             <TextInput
                 style={styles.inputOne}
                 onChangeText={changePassword}
-                value={password}
+                value={createdPassword}
             />
+
+            <View style={styles.profileBtn}>
+              <Button title="Profile Image" onPress={pickImage} />
+            </View>
 
             <TouchableOpacity
                 style={styles.registerBtn}
@@ -173,11 +241,14 @@ const styles= StyleSheet.create({
         borderRadius:5,
         height: 35
       },
+      profileBtn:{
+        marginTop: '5%'
+      },
       image: {
-        width: 300, 
-        height: 300,
+        width: 250, 
+        height: 250,
         position : 'absolute',
-        marginTop : 520
+        marginTop : 570
       },
 
 
