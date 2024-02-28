@@ -56,8 +56,6 @@ const RegisterScreen = () => {
           type: `image/${imageType}`,
         });
       }
-        
-      console.log('Sending request to:', backEndUrl);
   
 
       try {
