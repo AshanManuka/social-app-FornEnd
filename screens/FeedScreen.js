@@ -13,6 +13,7 @@ const FeedScreen = ({navigation, route}) => {
     const [imageUri, setImageUri] = useState(null);
     const [images, setImages] = useState([]);
     const [selectedImageUri, setSelectedImageUri] = useState(null);
+    const [isUploadViewVisible, setIsUploadViewVisible] = React.useState(false);
 
 
   useEffect(() => {
@@ -89,6 +90,10 @@ const FeedScreen = ({navigation, route}) => {
       alert("liked")
     }
 
+    const openUploadView = () =>{
+      setIsUploadViewVisible(true)
+    }
+
     const changeTitle = (inputText) =>{
       setuploadedTitle(inputText);
     }
@@ -99,14 +104,6 @@ const FeedScreen = ({navigation, route}) => {
 
     const pickImage = async () => {
 
-      // (async () => {
-      //   const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      //   if (status !== 'granted') {
-      //     alert('Permission to access media library is required!');
-      //   }
-      // })();
-
-
       let result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: false,
@@ -116,6 +113,49 @@ const FeedScreen = ({navigation, route}) => {
     
       setSelectedImageUri(result.assets[0].uri);
     };
+
+    const uploadImage = () =>{
+
+      const backEndUrl = `http://107.21.143.177:8080/user/upload?userId=${uId}&categoryId=1`;
+
+      const dumyImage = new FormData();
+      dumyImage.append('title', uploadedTitle);
+      dumyImage.append('description', uploadedDescription);
+
+      if (selectedImageUri) {
+        const imageUriParts = selectedImageUri.split('.');
+        const imageType = imageUriParts[imageUriParts.length - 1];
+        const imageName = `profileImage.${imageType}`;
+        dumyImage.append('image', {
+          uri: selectedImageUri,
+          name: imageName,
+          type: `image/${imageType}`,
+        });
+      }
+
+      console.log(dumyImage.profileImage);
+
+      try {
+        fetch(backEndUrl, {
+          method: 'POST',
+          body: dumyImage,
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        })
+          .then((response) => response.json())
+          .then((responseJson) => {
+            console.log(responseJson);
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+      } catch (error) {
+        console.error('Error getting location:', error);
+      }
+
+      setIsUploadViewVisible(false)
+    }
 
 
     
@@ -136,7 +176,7 @@ const FeedScreen = ({navigation, route}) => {
             </TouchableOpacity>
 
             <TouchableOpacity 
-            onPress={openSaveList}
+            onPress={openUploadView}
             style={styles.btnThree}>
               <Image source={require('./../assets/upload.png')} style={styles.iconTwo} />
             </TouchableOpacity>
@@ -176,36 +216,39 @@ const FeedScreen = ({navigation, route}) => {
 
           </ScrollView>
 
+          {isUploadViewVisible && (
           <View style={styles.uploadView}>
 
-          <Text style={styles.textOne}>Upload Your</Text>
+            <Text style={styles.textOne}>Upload Your</Text>
 
-          <Text style={styles.subText}>Title</Text>
-            <TextInput
-                style={styles.inputOne}
-                onChangeText={changeTitle}
-                value={uploadedTitle}
-            />
+            <Text style={styles.subText}>Title</Text>
+              <TextInput
+                  style={styles.inputOne}
+                  onChangeText={changeTitle}
+                  value={uploadedTitle}
+              />
 
-            <Text style={styles.subText}>Description</Text>
-            <TextInput
-                style={styles.inputOne}
-                onChangeText={changeDescription}
-                value={uploadedDescription}
-            />
-
-
-             <View style={styles.profileBtn}>
-              <Button title="Profile Image" onPress={pickImage} />
-            </View>           
+              <Text style={styles.subText}>Description</Text>
+              <TextInput
+                  style={styles.inputOne}
+                  onChangeText={changeDescription}
+                  value={uploadedDescription}
+              />
 
 
+              <View style={styles.profileBtn}>
+                <Button title="Profile Image" onPress={pickImage} />
+              </View>
 
+              <TouchableOpacity
+                  style={styles.registerBtn}
+                  onPress={uploadImage}
+                >
+                  <Text style={styles.btnText}>Upload</Text>
+              </TouchableOpacity>
           </View>
+          )}
 
-
-
-            
 
         </View>
     );
@@ -311,9 +354,9 @@ const styles= StyleSheet.create({
       uploadView:{
         position : 'absolute',
         width: '90%',
-        height:'70%',
+        height:'60%',
         backgroundColor :'#2d3436',
-        marginTop:'40%',
+        marginTop:'50%',
         borderRadius :10
       },
       inputOne:{
@@ -336,6 +379,21 @@ const styles= StyleSheet.create({
         marginTop: '10%',
         width: '60%',
         marginLeft: '20%'
+      },
+      registerBtn:{
+        backgroundColor: '#01a3a4',
+        padding:10,
+        width: '70%',
+        marginLeft: '15%',
+        paddingLeft:99,
+        paddingRight:90,
+        marginTop:'10%',
+        borderRadius:4
+      },
+      btnText:{
+        color: '#ffff',
+        fontSize:16,
+        fontWeight:'bold'
       },
 
     })
