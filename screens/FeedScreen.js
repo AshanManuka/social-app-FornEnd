@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, Image, ScrollView, TouchableOpacity } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import { StyleSheet, Text, View, Image, ScrollView, Button, TextInput, TouchableOpacity } from 'react-native';
 
 
 
@@ -7,9 +8,11 @@ const FeedScreen = ({navigation, route}) => {
 
     const [uId, setUserId] = React.useState('');
     const [uEmail, setUserEmail] = React.useState('');
-    const [profileImg, setProfileImg] = useState([]);
+    const [uploadedTitle, setuploadedTitle] = useState('');
+    const [uploadedDescription, setuploadedDescription] = useState('');
     const [imageUri, setImageUri] = useState(null);
-    const [todayImageList, setTodayImageList] = useState([]);
+    const [images, setImages] = useState([]);
+    const [selectedImageUri, setSelectedImageUri] = useState(null);
 
 
   useEffect(() => {
@@ -18,9 +21,30 @@ const FeedScreen = ({navigation, route}) => {
           setUserEmail(route.params.userEmail);
       }
 
-      
-      getUserDetail(2);
-      getFeedImages();
+
+      const fetchData = async () => {
+      try {
+        const tempImage = [];
+        const data = await fetchTodayImages();
+          for (let index = 0; index < 10; index++) {
+            const element = {
+              'id' : data.body[index].id,
+              'title' : data.body[index].title,
+              'description' : data.body[index].description,
+              'picture' : data.body[index].picture,
+              'likeCount' : data.body[index].likeCount,
+            }
+            tempImage.push(element);
+            console.log(data.body[index].id)
+          }
+          setImages(tempImage);
+      } catch (error) {
+        // Handle error
+      }
+    };
+
+    fetchData(); 
+    getUserDetail(2);
       
 
   }, [route.params]);
@@ -41,35 +65,17 @@ const FeedScreen = ({navigation, route}) => {
       .catch(error => console.error('Error fetching image:', error));
   };
 
-  const getFeedImages = async () => {
-      const backEndUrl = `http://107.21.143.177:8080/user/today-images`;
-
+  const fetchTodayImages = async () => {
     try {
-      const tempImage = [];
-      const response = await fetch(backEndUrl);
-        if(response.ok){
-          const responseData = await response.json();
-          
-          for (let index = 0; index < 3; index++) {
-            const element = {
-              'id' : responseData.body[index].id,
-              'title' : responseData.body[index].title,
-              'description' : responseData.body[index].description,
-              'image' : responseData.body[index].picture
-            }
-            tempImage.push(element);
-            console.log(responseData.body[index].id)
-          }
-          setTodayImageList(tempImage);
-                              
-      } else {
-        throw new Error('Failed to fetch image');
-      }
+      const response = await fetch('http://107.21.143.177:8080/user/today-images');
+      const data = await response.json();
+      return data;
     } catch (error) {
-      console.error('Error fetching images:', error);
+      console.error('Error fetching today images', error);
+      throw error;
     }
-    
-  }
+  };
+
 
     const openSearchView = () =>{
       //getFeedImages();
@@ -79,12 +85,44 @@ const FeedScreen = ({navigation, route}) => {
       alert("Open search")
     }
 
+    const liketoBtn = () =>{
+      alert("liked")
+    }
+
+    const changeTitle = (inputText) =>{
+      setuploadedTitle(inputText);
+    }
+
+    const changeDescription = (inputText) =>{
+      setuploadedDescription(inputText);
+    }
+
+    const pickImage = async () => {
+
+      // (async () => {
+      //   const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      //   if (status !== 'granted') {
+      //     alert('Permission to access media library is required!');
+      //   }
+      // })();
+
+
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: false,
+        aspect: [4, 3],
+        quality: 1,
+      });
+    
+      setSelectedImageUri(result.assets[0].uri);
+    };
+
 
     
 
     return(
         <View style={styles.body}>
-            <View style={styles.titleBar}>
+          <View style={styles.titleBar}>
 
             <TouchableOpacity 
             onPress={openSearchView}>
@@ -94,13 +132,13 @@ const FeedScreen = ({navigation, route}) => {
             <TouchableOpacity 
             onPress={openSaveList}
             style={styles.btnTwo}>
-              <Image source={require('./../assets/cart.png')} style={styles.iconTwo} />
+              <Image source={require('./../assets/instalike.png')} style={styles.iconTwo} />
             </TouchableOpacity>
 
             <TouchableOpacity 
             onPress={openSaveList}
             style={styles.btnThree}>
-              <Image source={require('./../assets/addMan.png')} style={styles.iconTwo} />
+              <Image source={require('./../assets/upload.png')} style={styles.iconTwo} />
             </TouchableOpacity>
 
             <TouchableOpacity 
@@ -117,20 +155,53 @@ const FeedScreen = ({navigation, route}) => {
             <Text>Loading...</Text>
             )}
 
-            </View>
+          </View>
 
-            <ScrollView>
-              <View style={styles.feedView}>
-                {todayImageList.map((pic, id) => (
-                <Image
-                key={id}
-                source={{ uri: pic.image }}
-                style={styles.todayImages}
-                onError={(error) => console.error('Image Error:', error)}
-                />
-                ))}
-              </View>
-            </ScrollView>
+          <ScrollView style={styles.feedView}>
+            {images.map(image => (
+              <View key={image.id} style={styles.imageView}>
+              <Image source={{ uri: `data:image/png;base64,${image.picture}` }} style={styles.todayImages} />
+              <TouchableOpacity 
+                onPress={liketoBtn}
+                style={styles.likeBtn}>
+                <Image source={require('./../assets/likelogo.png')} style={styles.iconTwo} />
+                <Text style={styles.likeCount}>{image.likeCount}</Text>
+              </TouchableOpacity>
+              <Text style={styles.imageTitle}>{image.title}</Text>
+              <Text style={styles.imageDesc}>{image.description}</Text>
+              
+              
+            </View>
+            ))}
+
+          </ScrollView>
+
+          <View style={styles.uploadView}>
+
+          <Text style={styles.textOne}>Upload Your</Text>
+
+          <Text style={styles.subText}>Title</Text>
+            <TextInput
+                style={styles.inputOne}
+                onChangeText={changeTitle}
+                value={uploadedTitle}
+            />
+
+            <Text style={styles.subText}>Description</Text>
+            <TextInput
+                style={styles.inputOne}
+                onChangeText={changeDescription}
+                value={uploadedDescription}
+            />
+
+
+             <View style={styles.profileBtn}>
+              <Button title="Profile Image" onPress={pickImage} />
+            </View>           
+
+
+
+          </View>
 
 
 
@@ -150,7 +221,8 @@ const styles= StyleSheet.create({
       },
       textOne:{
         color: '#dfe4ea',
-        marginTop: '18%',
+        marginTop: '10%',
+        marginLeft:'25%',
         marginBottom:'8%',
         fontSize: 30,
         fontWeight: 'bold',
@@ -185,7 +257,7 @@ const styles= StyleSheet.create({
       iconTwo:{
         width: 40, 
         height: 40,
-        borderRadius: 15,
+        borderRadius: 5,
         marginTop:'2.5%',
         marginLeft: '5%'
       },
@@ -200,14 +272,70 @@ const styles= StyleSheet.create({
         marginLeft: '50%'
       },
       feedView: {
-        flexDirection: 'row', // or 'column' based on your layout
-        flexWrap: 'wrap', // ensures images wrap to the next line if they don't fit
-        justifyContent: 'space-between', // or 'flex-start' or 'center' based on your layout
+        
       },
       todayImages: {
-        width: 500,
-        height: 500,
-        borderRadius: 35,
-        marginTop: '5%', // Adjust this value based on your layout
+        width: 380,
+        height: 320,
+        borderRadius: 5,
+        marginTop: '5%',
+        marginLeft: '3%'
       },
+      imageTitle:{
+        color: '#fff',
+        fontSize: 20,
+        fontWeight:'bold',
+        marginLeft: '3%'
+      },
+      imageDesc:{
+        color: '#fff',
+        fontSize: 13 ,
+        width: '80%',
+        marginTop: '2%',
+        marginLeft: '3%'
+      },
+      imageView:{
+        marginTop:'6%'
+      },
+      likeBtn:{
+        position: 'absolute',
+        marginLeft: '75%',
+        marginTop:'75%'
+      },
+      likeCount:{
+        marginTop: '-35%',
+        marginLeft: '-22%' ,
+        color: '#fff',
+        fontSize:20,
+      },
+      uploadView:{
+        position : 'absolute',
+        width: '90%',
+        height:'70%',
+        backgroundColor :'#2d3436',
+        marginTop:'40%',
+        borderRadius :10
+      },
+      inputOne:{
+        borderColor: '#fff',
+        marginTop: '2%',
+        backgroundColor : '#fff',
+        width: '70%',
+        marginLeft: '15%',
+        borderRadius:5,
+        height: 35
+      },
+      subText:{
+        color: '#ffff',
+        marginTop: '5%',
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginLeft: '5%'
+      },
+      profileBtn:{
+        marginTop: '10%',
+        width: '60%',
+        marginLeft: '20%'
+      },
+
     })
