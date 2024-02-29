@@ -201,7 +201,8 @@ const styles= StyleSheet.create({
         backgroundColor : '#fff',
         width: '70%',
         borderRadius:5,
-        height: 35
+        height: 35,
+        paddingLeft: '2%'
       },
       subText:{
         color: '#ffff',

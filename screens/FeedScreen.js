@@ -35,7 +35,7 @@ const FeedScreen = ({navigation, route}) => {
     try {
       const tempImage = [];
       const data = await fetchTodayImages(backEndUrl);
-        for (let index = 0; index < 10; index++) {
+        for (let index = 0; index < 15; index++) {
           const element = {
             'id' : data.body[index].id,
             'title' : data.body[index].title,
@@ -53,7 +53,7 @@ const FeedScreen = ({navigation, route}) => {
   };
 
   const getUserDetail = async (userId) => {
-        const imageId = 1;
+        const imageId = 14;
         const backEndUrl = `http://107.21.143.177:8080/user/my-single-image?userId=${userId}&imageId=${imageId}`;
 
         fetch(backEndUrl)
@@ -89,7 +89,7 @@ const FeedScreen = ({navigation, route}) => {
     }
 
     const refreshFeed = () =>{
-      //fetchTodayImages();
+      fetchData('http://107.21.143.177:8080/user/today-images');
     }
 
     const liketoBtn = () =>{
@@ -173,7 +173,8 @@ const FeedScreen = ({navigation, route}) => {
     }
 
 
-  
+
+
     return(
         <View style={styles.body}>
           <View style={styles.titleBar}>
@@ -184,7 +185,7 @@ const FeedScreen = ({navigation, route}) => {
             </TouchableOpacity>
 
             <TouchableOpacity 
-            onPress={openSaveList}
+            onPress={() => navigation.navigate('Profile', {'userId' : uId})}
             style={styles.btnTwo}>
               <Image source={require('./../assets/instalike.png')} style={styles.iconTwo} />
             </TouchableOpacity>
@@ -378,12 +379,12 @@ const styles= StyleSheet.create({
       },
       likeBtn:{
         position: 'absolute',
-        marginLeft: '75%',
-        marginTop:'75%'
+        marginLeft: '85%',
+        marginTop:'86%'
       },
       likeCount:{
-        marginTop: '-35%',
-        marginLeft: '-22%' ,
+        marginTop: '-60%',
+        marginLeft: '-32%' ,
         color: '#fff',
         fontSize:20,
       },
