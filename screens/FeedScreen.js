@@ -9,11 +9,13 @@ const FeedScreen = ({navigation, route}) => {
     const [uId, setUserId] = React.useState('');
     const [uEmail, setUserEmail] = React.useState('');
     const [uploadedTitle, setuploadedTitle] = useState('');
+    const [searchKeyword, setSearchKeyword] = useState('');
     const [uploadedDescription, setuploadedDescription] = useState('');
     const [imageUri, setImageUri] = useState(null);
     const [images, setImages] = useState([]);
     const [selectedImageUri, setSelectedImageUri] = useState(null);
     const [isUploadViewVisible, setIsUploadViewVisible] = React.useState(false);
+    const [isSearchViewVisible, setIsSearchViewVisible] = React.useState(false);
 
 
   useEffect(() => {
@@ -23,32 +25,32 @@ const FeedScreen = ({navigation, route}) => {
       }
 
 
-      const fetchData = async () => {
-      try {
-        const tempImage = [];
-        const data = await fetchTodayImages();
-          for (let index = 0; index < 10; index++) {
-            const element = {
-              'id' : data.body[index].id,
-              'title' : data.body[index].title,
-              'description' : data.body[index].description,
-              'picture' : data.body[index].picture,
-              'likeCount' : data.body[index].likeCount,
-            }
-            tempImage.push(element);
-            console.log(data.body[index].id)
-          }
-          setImages(tempImage);
-      } catch (error) {
-        // Handle error
-      }
-    };
-
-    fetchData(); 
+    fetchData('http://107.21.143.177:8080/user/today-images'); 
     getUserDetail(2);
       
 
   }, [route.params]);
+
+  const fetchData = async (backEndUrl) => {
+    try {
+      const tempImage = [];
+      const data = await fetchTodayImages(backEndUrl);
+        for (let index = 0; index < 10; index++) {
+          const element = {
+            'id' : data.body[index].id,
+            'title' : data.body[index].title,
+            'description' : data.body[index].description,
+            'picture' : data.body[index].picture,
+            'likeCount' : data.body[index].likeCount,
+          }
+          tempImage.push(element);
+          console.log(data.body[index].id)
+        }
+        setImages(tempImage);
+    } catch (error) {
+      // Handle error
+    }
+  };
 
   const getUserDetail = async (userId) => {
         const imageId = 1;
@@ -66,9 +68,9 @@ const FeedScreen = ({navigation, route}) => {
       .catch(error => console.error('Error fetching image:', error));
   };
 
-  const fetchTodayImages = async () => {
+  const fetchTodayImages = async (backEndUrl) => {
     try {
-      const response = await fetch('http://107.21.143.177:8080/user/today-images');
+      const response = await fetch(backEndUrl);
       const data = await response.json();
       return data;
     } catch (error) {
@@ -79,11 +81,15 @@ const FeedScreen = ({navigation, route}) => {
 
 
     const openSearchView = () =>{
-      //getFeedImages();
+      setIsSearchViewVisible(true)
     }
 
     const openSaveList = () =>{
       alert("Open search")
+    }
+
+    const refreshFeed = () =>{
+      //fetchTodayImages();
     }
 
     const liketoBtn = () =>{
@@ -96,6 +102,10 @@ const FeedScreen = ({navigation, route}) => {
 
     const changeTitle = (inputText) =>{
       setuploadedTitle(inputText);
+    }
+
+    const changeSearchKeyword = (inputText) =>{
+      setSearchKeyword(inputText);
     }
 
     const changeDescription = (inputText) =>{
@@ -157,9 +167,13 @@ const FeedScreen = ({navigation, route}) => {
       setIsUploadViewVisible(false)
     }
 
+    const searchImages = () =>{
+      fetchData(`http://107.21.143.177:8080/user/search?keyword=${searchKeyword}`);
+      setIsSearchViewVisible(false)
+    }
 
-    
 
+  
     return(
         <View style={styles.body}>
           <View style={styles.titleBar}>
@@ -182,7 +196,7 @@ const FeedScreen = ({navigation, route}) => {
             </TouchableOpacity>
 
             <TouchableOpacity 
-            onPress={openSaveList}
+            onPress={refreshFeed}
             style={styles.btnFour}>
               <Image source={require('./../assets/update.png')} style={styles.iconTwo} />
             </TouchableOpacity>
@@ -248,6 +262,28 @@ const FeedScreen = ({navigation, route}) => {
               </TouchableOpacity>
           </View>
           )}
+
+
+          {isSearchViewVisible && (  
+          <View style={styles.searchView}>
+
+            <TextInput
+                style={styles.searchInput}
+                onChangeText={changeSearchKeyword}
+                placeholder='keyword'
+                value={searchKeyword}
+              />
+
+              <TouchableOpacity
+                  style={styles.registerBtn}
+                  onPress={searchImages}
+                >
+                  <Text style={styles.btnText}>Search</Text>
+              </TouchableOpacity>
+
+          </View>
+          )}
+
 
 
         </View>
@@ -394,6 +430,23 @@ const styles= StyleSheet.create({
         color: '#ffff',
         fontSize:16,
         fontWeight:'bold'
+      },
+      searchView:{
+        backgroundColor: '#2d3436',
+        width: '95%',
+        height: '85%',
+        position: 'absolute',
+        marginTop: '30%'
+      },
+      searchInput:{
+        borderColor: '#fff',
+        marginTop: '12%',
+        backgroundColor : '#fff',
+        width: '70%',
+        paddingLeft: '5%',
+        marginLeft: '15%',
+        borderRadius:5,
+        height: 35
       },
 
     })

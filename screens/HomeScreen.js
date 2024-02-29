@@ -74,6 +74,7 @@ const HomeScreen = ({navigation}) => {
                 style={styles.inputOne}
                 onChangeText={changePassword}
                 value={password}
+                secureTextEntry={true}
             />
 
             <TouchableOpacity
@@ -141,7 +142,8 @@ const styles= StyleSheet.create({
         backgroundColor : '#fff',
         width: '60%',
         borderRadius:5,
-        height: 35
+        height: 35,
+        paddingLeft: '3%'
       },
       loginBtn:{
         position:'absolute',
